@@ -1,0 +1,60 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
+    "jsr:@std/internal@^1.0.12": "1.0.14"
+  },
+  "jsr": {
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@react-native-async-storage/async-storage@2.2.0",
+        "npm:@react-native-community/netinfo@12.0.1",
+        "npm:@react-navigation/bottom-tabs@^7.21.0",
+        "npm:@react-navigation/native-stack@^7.21.0",
+        "npm:@react-navigation/native@^7.5.1",
+        "npm:@supabase/supabase-js@^2.118.0",
+        "npm:@testing-library/react-native@^14.1.0",
+        "npm:@types/jest@30",
+        "npm:@types/pg@^8.23.1",
+        "npm:@types/react@19.3",
+        "npm:babel-preset-expo@^58.0.19",
+        "npm:eslint-config-expo@~58.0.4",
+        "npm:eslint@9",
+        "npm:expo-constants@~58.0.13",
+        "npm:expo-crypto@~58.0.7",
+        "npm:expo-dev-client@~58.0.14",
+        "npm:expo-device@~58.0.5",
+        "npm:expo-linking@~58.0.14",
+        "npm:expo-location@~58.0.18",
+        "npm:expo-notifications@~58.1.6",
+        "npm:expo-secure-store@~58.0.2",
+        "npm:expo-splash-screen@~58.0.11",
+        "npm:expo-status-bar@~58.0.4",
+        "npm:expo-task-manager@~58.0.12",
+        "npm:expo@~58.0.17",
+        "npm:jest-expo@~58.0.12",
+        "npm:jest@^30.5.2",
+        "npm:pg@^8.23.1",
+        "npm:react-native-maps@1.29.11",
+        "npm:react-native-safe-area-context@~5.10.1",
+        "npm:react-native-screens@4.30",
+        "npm:react-native-url-polyfill@4",
+        "npm:react-native@0.88.0",
+        "npm:react@19.3.0",
+        "npm:typescript@~6.0.3",
+        "npm:zod@^4.6.7"
+      ]
+    }
+  }
+}
