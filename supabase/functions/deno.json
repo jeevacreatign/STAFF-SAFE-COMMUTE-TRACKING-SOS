@@ -1,4 +1,5 @@
 {
+  "nodeModulesDir": "none",
   "compilerOptions": { "strict": true },
   "lint": { "rules": { "tags": ["recommended"] } }
 }
