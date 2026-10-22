@@ -1,6 +1,6 @@
 # Staff Safe Commute: Implementation Plan and Architecture
 
-Status: Phase 1 output (plan). Sections marked "Verification" are updated as phases complete.
+Status: implemented. Verification status is in docs/test-results.md.
 
 ## 1. Starting point
 
@@ -17,7 +17,7 @@ bundled compatibility map.
 | Navigation | React Navigation 7 (native-stack + bottom-tabs) | Required by the spec. Role-gated navigators. |
 | Backend | Supabase Auth, Postgres, Realtime, Edge Functions | Required by the spec. |
 | Trusted writes | **Postgres `SECURITY DEFINER` RPC functions** called with the user's JWT | Transactional, run inside the DB with row locks, enforce state machine + authz in one place, testable with plain Postgres. Tables are not directly writable by clients. |
-| Privileged ops needing the service role | Edge Functions (`invite-user`, `dispatch-notifications`) | Only these need the service-role key; it stays in Supabase function secrets. |
+| Privileged ops needing the service role | Edge Functions (`invite-user`, `dispatch-notifications`) and the operator CLI (`scripts/operator.mjs`) | Only these need the service-role key; it stays in Supabase function secrets or the operator's shell. |
 | Expiry | `expire_journeys()` SQL run by `pg_cron` every minute **and** checked inline in every location upload | Server rejects uploads after `expires_at` even if cron is late or the phone is offline. |
 | Location | `expo-location` + `expo-task-manager` with an Android foreground service (persistent notification) | Platform-supported background API. |
 | Map | `react-native-maps` (Google Maps SDK on Android) | Needs a Google Maps Android API key. |
@@ -107,3 +107,36 @@ Not requested: contacts, camera, microphone, SMS, phone, `RECEIVE_BOOT_COMPLETED
 ## 10. Build phases
 
 1. Plan (this doc). 2. Foundation (theme, components, navigation, auth). 3. Backend (migrations, RLS, RPCs, cron, Edge Functions) with DB security tests. 4. Staff flows. 5. Admin flows. 6. Integration hardening. 7. Tests, docs, device checklist.
+
+## 11. Deviations from the suggested structure
+
+- The spec lists one Edge Function per operation (`create-journey`, `update-location`, `stop-journey`, `safe-arrival`, `expire-journeys`, `create-sos-alert`, `update-sos-status`). These are implemented as Postgres functions (`start_journey`, `record_locations`, `end_journey`, `expire_journeys`, `create_sos_alert`, `update_sos_status`) called with the user's JWT. They run in one transaction with row locks next to the data, need no service-role key, and are covered by the DB test suite. Edge Functions are used only where the service role or an external API is required.
+- Admin sign-in uses the same sign-in screen as staff; the server-side role decides which navigator is mounted.
+- SOS confirmation and safe-arrival confirmation are confirmation dialogs on the active-journey screen (fewest steps to act) plus a dedicated SOS status screen.
+- `docs/troubleshooting.md` and `docs/test-results.md` were added.
+
+## 12. Code map
+
+```
+App.tsx, index.ts                 entry; index.ts defines the background task at load
+app.config.ts                     Expo config: permissions, plugins, maps key injection
+src/constants                     config (env), location intervals/thresholds, consent text
+src/theme                         design tokens
+src/components                    AppButton, Card, TextField, Badges, Banners, SOSButton, MapPanel, ConfirmDialog, States, Screen
+src/context                       AuthContext (session, server-verified role), NetworkContext (reconnect -> retry)
+src/hooks                         useAsync, useRealtimeTable, useLocationStatus, useNow
+src/navigation                    RootNavigator -> Auth | Staff | Admin navigators
+src/schemas                       Zod validation
+src/services/supabase             client (SecureStore session), rpc helper
+src/services/location             state/queue, uploader, background task, controller, permissions
+src/services/journeys             start / end / reconcile / history
+src/services/sos                  SOS outbox, capture location, retries
+src/services/notifications        channels, push token registration, preferences
+src/services/admin                dashboard, journeys, SOS, staff, audit, invite
+src/screens/{auth,staff,journey,sos,settings,admin}
+supabase/migrations               schema, RLS, functions, cron, grants allowlist
+supabase/functions                invite-user, dispatch-notifications, _shared
+scripts                           operator CLI, DB test reset, bundle scan
+tests/unit                        app unit + component tests (Jest)
+tests/security, tests/integration DB tests against PostgreSQL
+```

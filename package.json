@@ -26,6 +26,7 @@
     "react-native-maps": "1.29.11",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
+    "react-native-url-polyfill": "^4.0.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -34,16 +35,37 @@
     "@types/pg": "^8.23.1",
     "@types/react": "~19.3.0",
     "babel-preset-expo": "^58.0.19",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
     "jest": "^30.5.2",
     "jest-expo": "~58.0.12",
     "pg": "^8.23.1",
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "android:release": "expo run:android --variant release",
+    "prebuild": "expo prebuild --platform android --clean",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint",
+    "test": "jest",
+    "test:db": "jest -c jest.db.config.js --runInBand",
+    "test:functions": "deno test supabase/functions/_shared && deno check supabase/functions/*/index.ts",
+    "test:all": "npm run typecheck && npm run lint && npm test && npm run test:db",
+    "scan:bundle": "node scripts/scan-bundle.js"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "testMatch": [
+      "<rootDir>/tests/unit/**/*.test.ts?(x)"
+    ],
+    "setupFiles": [
+      "<rootDir>/tests/unit/setup.ts"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|@supabase/.*))"
+    ]
+  }
 }
