@@ -51,7 +51,7 @@
     "lint": "expo lint",
     "test": "jest",
     "test:db": "jest -c jest.db.config.js --runInBand",
-    "test:functions": "deno test supabase/functions/_shared && deno check supabase/functions/*/index.ts",
+    "test:functions": "deno test --config supabase/functions/deno.json supabase/functions/_shared && deno check --config supabase/functions/deno.json supabase/functions/*/index.ts",
     "test:all": "npm run typecheck && npm run lint && npm test && npm run test:db",
     "scan:bundle": "node scripts/scan-bundle.js"
   },

@@ -10,7 +10,7 @@ Use separate Supabase projects for development, staging and production. Never ru
 2. `npx supabase db push` against the target project; confirm cron jobs (Dashboard → Integrations → Cron).
 3. Deploy functions (`invite-user`, `dispatch-notifications --no-verify-jwt`) and confirm secrets are set.
 4. Confirm Auth: sign-ups disabled, redirect URL allow-listed, email templates reviewed (invite / recovery text).
-5. Build: add an `eas.json` (below), then `npx eas-cli@latest build --profile production --platform android`.
+5. Build (profiles are in `eas.json`): `npx eas-cli@latest build --profile production --platform android`.
 6. Scan the release bundle: `npx expo export --platform android --output-dir dist && node scripts/scan-bundle.js dist` (set `SCAN_FORBIDDEN_VALUES` to your service-role key and other secrets to prove they are absent).
 7. Run the physical-device checklist in `docs/testing-checklist.md` on the release build.
 8. Google Play Console:
@@ -20,7 +20,7 @@ Use separate Supabase projects for development, staging and production. Never ru
    - Privacy policy URL.
 9. Privacy policy, consent wording (`src/constants/consent.ts` + migration seed), retention values and operating procedures approved by the school / data-protection owner (acceptance criterion 20).
 
-Suggested `eas.json`:
+`eas.json` (committed):
 
 ```json
 {
@@ -33,7 +33,7 @@ Suggested `eas.json`:
 }
 ```
 
-Store `EXPO_PUBLIC_*` values and `GOOGLE_MAPS_ANDROID_API_KEY` as EAS environment variables (`npx eas-cli@latest env:create`).
+Store `EXPO_PUBLIC_*` values and `GOOGLE_MAPS_ANDROID_API_KEY` as EAS environment variables for the matching environment (development, preview, production), via expo.dev → Project → Environment variables or `npx eas-cli@latest env:create`. Each build profile reads its `environment`. Never put the service-role key there.
 
 ## Changing the consent text
 
