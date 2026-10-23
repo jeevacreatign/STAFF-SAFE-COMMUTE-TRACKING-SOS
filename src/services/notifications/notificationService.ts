@@ -26,7 +26,6 @@ export async function configureNotifications() {
       description: 'Emergency alerts raised by staff (administrators only).',
       importance: Notifications.AndroidImportance.MAX,
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
-      sound: 'default',
     });
     await Notifications.setNotificationChannelAsync(CHANNELS.journey, {
       name: 'Journey updates',
