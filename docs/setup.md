@@ -81,6 +81,87 @@ node scripts/operator.mjs create-admin --org <org-uuid> --email safety.lead@scho
 ```
 
 The admin receives a password-setup email. Staff are then invited from the app (Staff → Invite staff member).
+For operator-managed staff creation from a trusted terminal, set `INVITE_REDIRECT_URL` to
+`staffsafecommute://reset-password` and run:
+
+```bash
+export INVITE_REDIRECT_URL=staffsafecommute://reset-password
+node scripts/operator.mjs create-staff --org <org-uuid> --email staff@school.example --name "Staff Member" --employee-ref STAFF001
+```
+
+This creates an employee account for the specified organisation and sends a password-setup email.
+Set `SUPABASE_ANON_KEY` to the project's publishable/anon key as well as the service-role key so
+the script can request the setup email. The email must be new to this Supabase project. Never put
+the service-role/secret key in app `.env`, source control, or chat; only provide it to the operator
+script through the trusted shell environment.
+
+To create a staff account and set its password directly in one terminal operation, enter the
+password through a secure PowerShell prompt. This confirms the email for immediate sign-in and does
+not send a password-setup email:
+
+```powershell
+$nodeExe = 'C:\Program Files\nodejs\node.exe'
+$staffEmail = Read-Host 'New staff email (must be unused in this Supabase project)'
+$staffName = Read-Host 'Staff full name'
+$staffId = Read-Host 'Staff ID (optional; press Enter to skip)'
+$securePassword = Read-Host 'Staff password (10+ chars, upper/lowercase and number)' -AsSecureString
+$confirmPassword = Read-Host 'Confirm staff password' -AsSecureString
+$newPassword = [System.Net.NetworkCredential]::new('', $securePassword).Password
+$confirmation = [System.Net.NetworkCredential]::new('', $confirmPassword).Password
+if ($newPassword -cne $confirmation) { throw 'Passwords do not match.' }
+$env:OPERATOR_NEW_PASSWORD = $newPassword
+try {
+  if ($staffId) {
+    & $nodeExe .\scripts\operator.mjs create-staff --org '<org-uuid>' --email $staffEmail --name $staffName --employee-ref $staffId
+  } else {
+    & $nodeExe .\scripts\operator.mjs create-staff --org '<org-uuid>' --email $staffEmail --name $staffName
+  }
+  if ($LASTEXITCODE -ne 0) { throw 'Staff account creation failed.' }
+}
+finally {
+  Remove-Item Env:OPERATOR_NEW_PASSWORD -ErrorAction SilentlyContinue
+  Remove-Variable securePassword, confirmPassword, newPassword, confirmation -ErrorAction SilentlyContinue
+}
+```
+
+Replace `<org-uuid>` with the staff member's organisation ID. This requires the operator's
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to be set in the same PowerShell window. The chosen
+email must not already exist in Supabase Auth. Never paste the password or secret key into chat.
+
+If an existing user's password-setup link does not open the app's new-password screen, request a
+fresh recovery email from the operator terminal. This command uses the app's supported token-based
+link flow and does not create another account:
+
+```bash
+export INVITE_REDIRECT_URL=staffsafecommute://reset-password
+node scripts/operator.mjs send-password-reset --email safety.lead@school.example
+```
+
+Open the newest email on the phone with the app installed. Do not reuse older recovery links.
+
+For an operator-managed password change without email, use the trusted terminal only. Enter the
+password through a secure prompt; do not put it in the command or chat:
+
+```powershell
+$securePassword = Read-Host 'New password (10+ chars, upper/lowercase and number)' -AsSecureString
+$confirmPassword = Read-Host 'Confirm new password' -AsSecureString
+$newPassword = [System.Net.NetworkCredential]::new('', $securePassword).Password
+$confirmation = [System.Net.NetworkCredential]::new('', $confirmPassword).Password
+if ($newPassword -cne $confirmation) { throw 'Passwords do not match.' }
+$env:OPERATOR_NEW_PASSWORD = $newPassword
+try {
+  & $nodeExe .\scripts\operator.mjs set-password --email 'safety.lead@school.example'
+  if ($LASTEXITCODE -ne 0) { throw 'Password update failed.' }
+}
+finally {
+  Remove-Item Env:OPERATOR_NEW_PASSWORD -ErrorAction SilentlyContinue
+  Remove-Variable securePassword, confirmPassword, newPassword, confirmation -ErrorAction SilentlyContinue
+}
+```
+
+This changes only the matched Supabase Auth user's password; it does not modify their role or
+organisation. Use this only for an account you are authorized to administer, and never paste the
+password or service-role key into chat or source files.
 
 For a **development** project only, `node scripts/operator.mjs seed-dev` creates a clearly labelled synthetic organisation with one admin and two staff accounts (refuses non-local URLs unless `--allow-remote-dev`).
 
